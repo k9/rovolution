@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<body>
+<link href='http://fonts.googleapis.com/css?family=Quantico' rel='stylesheet' type='text/css'>
+<style rel="stylesheet" type="text/css">
+* { margin: 0; padding: 0 }
+body { background: #aaa; padding-top: 30px; font-family: 'Quantico', sans-serif; }
+#canvasContainer { margin: 0px auto; text-align: center; width: 968px; position: relative }
+#canvasContainer canvas { position: absolute; left: 0; top: 0 }
+#hud { background: #6d6d6d; color: #d6d6d6; position: absolute; right: 0; width: 160px; padding: 20px; height: 536px }
+#hud h1 { font-size: 18px; }
+</style>
+
+<div id="canvasContainer">
+<div id="hud">
+<h1>Speed</h1>
+<p>5</p>
+<h1>Jump</h1>
+<p>4</p>
+<h1>Blaster</h2>
+<p>3</p>
+</div>
+</div>
+
+<script src="js/jquery.js"></script>
+<script src="js/lightgl.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/render.js"></script>
+<script src="js/game.js"></script>
+<script src="js/level.js"></script>
+<script src="js/rover.js"></script>
+<script>
+game.start();
+</script>
+</body>
+</html>
