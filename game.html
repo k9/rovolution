@@ -7,19 +7,49 @@
 * { margin: 0; padding: 0 }
 body { background: #aaa; padding-top: 30px; font-family: 'Quantico', sans-serif; }
 #canvasContainer { margin: 0px auto; text-align: center; width: 968px; position: relative }
-#canvasContainer canvas { position: absolute; left: 0; top: 0 }
-#hud { background: #6d6d6d; color: #d6d6d6; position: absolute; right: 0; width: 160px; padding: 20px; height: 536px }
-#hud h1 { font-size: 18px; }
+#canvasContainer canvas { position: absolute; right: 0; top: 0 }
+#hud { background: #444; color: #d6d6d6; position: absolute; left: 0; width: 160px; padding: 20px; height: 536px }
+#hud .section { background: #888; padding: 20px 0; margin: 20px 0; border-radius: 6px }
+#hud h1 { font-size: 20px; font-weight: bold; }
+#hud h2 { font-size: 16px; }
+#hud .section.current { position: absolute; left: 20px; top: 80px; width: 160px }
+#hud .section.next { position: absolute; left: 20px; top: 320px; width: 160px }
+
+#hud .bar { margin: 0 auto 10px auto; display: block; width: 100px; height: 16px; background: url('greyBar.png');}
+#hud .bar .inner { display: block; height: 16px; background: url('greenBar.png') }
+#hud .stat.bar .inner { background: url('blueBar.png') }
+#hud .transition.bar .inner { background: url('goldBar.png') }
+
+#hud .transition.bar { position: absolute; left: 50px; top: 320px }
 </style>
 
 <div id="canvasContainer">
 <div id="hud">
-<h1>Speed</h1>
-<p>5</p>
-<h1>Jump</h1>
-<p>4</p>
-<h1>Blaster</h2>
-<p>3</p>
+<h1>Health</h1>
+<p class="health bar"><span class="inner" /></p>
+
+<div class="current section">
+<h1>Version 0</h1>
+<h2>Speed</h2>
+<p class="stat speed bar"><span class="inner" /></p>
+<h2>Jump</h2>
+<p class="stat jump bar"><span class="inner" /></p>
+<h2>Blaster</h2>
+<p class="stat blaster bar"><span class="inner" /></p>
+</div>
+
+<p class="transition bar"><span class="inner" /></p>
+
+<div class="next section">
+<h1>Version 1</h1>
+<h2>Speed</h2>
+<p class="stat speed bar"><span class="inner" /></p>
+<h2>Jump</h2>
+<p class="stat jump bar"><span class="inner" /></p>
+<h2>Blaster</h2>
+<p class="stat blaster bar"><span class="inner" /></p>
+</div>
+
 </div>
 </div>
 
@@ -30,6 +60,9 @@ body { background: #aaa; padding-top: 30px; font-family: 'Quantico', sans-serif;
 <script src="js/game.js"></script>
 <script src="js/level.js"></script>
 <script src="js/rover.js"></script>
+<script src="js/projectile.js"></script>
+<script src="js/turret.js"></script>
+
 <script>
 game.start();
 </script>

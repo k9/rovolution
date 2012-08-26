@@ -4,10 +4,12 @@ var $$ = game.level = {
     blockTypes: {
         blank: 2,
         metal: 1,
+        turret: 3
     },
 
     blockCodes: {
         "r0g0b0": 1,
+        "r255g0b0": 3,
         "r255g255b255": 2
     },
 

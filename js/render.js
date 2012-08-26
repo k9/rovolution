@@ -5,6 +5,8 @@ gl.canvas.height = 576;
 
 var blockTiles = GL.Texture.fromURL('tiles.png', { magFilter: gl.NEAREST, minFilter: gl.NEAREST });
 var roverTiles = GL.Texture.fromURL('rover.png', { magFilter: gl.NEAREST, minFilter: gl.NEAREST });
+var projectileTiles = GL.Texture.fromURL('projectile.png', { magFilter: gl.NEAREST, minFilter: gl.NEAREST });
+var turretTiles = GL.Texture.fromURL('turret.png', { magFilter: gl.NEAREST, minFilter: gl.NEAREST });
 
 var tileShader = new GL.Shader('\
     uniform float tilesWidth;\
@@ -28,6 +30,35 @@ var tileShader = new GL.Shader('\
     }\
 ');
 
+var projectileShader = new GL.Shader('\
+    uniform float tilesWidth;\
+    attribute float x;\
+    attribute float y;\
+    attribute float type;\
+    attribute float strength;\
+    varying float vStrength;\
+    varying vec2 coord;\
+    void main() {\
+        vStrength = strength;\
+        float offset = 1.0 / tilesWidth;\
+        float start = type * 18.0 / tilesWidth + offset;\
+        float width = gl_TexCoord.x * 16.0 / tilesWidth;\
+        coord = vec2(start + width, gl_TexCoord.y);\
+        vec4 pos = gl_Vertex + vec4(x / 16.0, y / 16.0, 0, 0);\
+        gl_Position = gl_ModelViewProjectionMatrix * pos;\
+    }\
+', '\
+    varying float vStrength;\
+    varying vec2 coord;\
+    uniform sampler2D texture;\
+    void main() {\
+        vec4 sample = texture2D(texture, coord);\
+        gl_FragColor = vec4(sample.rgb, sample.a * vStrength);\
+    }\
+');
+
+
+
 gl.ondraw = function() {
     gl.clearColor(0,0,0,0);
     gl.enable(gl.BLEND);
@@ -47,13 +78,17 @@ gl.ondraw = function() {
     }).draw(game.levelMesh);
 
     var wheelOffset = 0;
-    if(game.keysDown.right) wheelOffset = 1;
-    if(game.keysDown.left) wheelOffset = 2;
+    if(game.theRover.xSpeed > 0.1) wheelOffset = 1;
+    if(game.theRover.xSpeed < -0.1) wheelOffset = 2;
 
     var chassisOffset = 0;
     if(game.keysDown.down) chassisOffset = 1;
 
-    game.rover.offsetTypes(game.theRover, [0, chassisOffset, wheelOffset]);
+    var cannonOffset = 0;
+    if(!game.theRover.cannonRight) cannonOffset = 1;
+    if(game.keysDown.space && Math.random() > 0.75) cannonOffset = 2;
+
+    game.rover.offsetTypes(game.theRover, [cannonOffset, chassisOffset, wheelOffset]);
     game.theRoverMesh = game.rover.makeMesh(game.theRover);
 
     roverTiles.bind(0);
@@ -63,4 +98,20 @@ gl.ondraw = function() {
         x: game.theRover.x,
         y: game.theRover.y
     }).draw(game.theRoverMesh);
+
+    if(game.projectiles.length > 0) {
+        projectileTiles.bind(0);
+        projectileShader.uniforms({ 
+            texture: 0, 
+            tilesWidth: 180
+        }).draw(game.projectileMesh);
+    }
+
+    if(game.turrets.length > 0) {
+        turretTiles.bind(0);
+        projectileShader.uniforms({ 
+            texture: 0, 
+            tilesWidth: 180
+        }).draw(game.turretMesh);
+    }
 };
