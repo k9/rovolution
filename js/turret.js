@@ -23,6 +23,10 @@ var $$ = game.turret = {
             else
                 game.newProjectile(turret.x + 17, turret.y, 0.1, true, 2);
         }
+
+        if(turret.health > 66) turret.type = 0;
+        else if(turret.health > 33) turret.type = 1;
+        else turret.type = 2;
     },
 
     addPart: function(meshData, layer, type, x, y, strength) {
