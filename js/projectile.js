@@ -1,9 +1,9 @@
 (function() {
 
 var $$ = game.projectile = {
-    create: function(x, y, xSpeed, ySpeed, enemy) {
+    create: function(x, y, xSpeed, ySpeed, enemy, lifetime) {
         var projectile = {
-            lifetime: 0.2,
+            lifetime: lifetime,
             type: xSpeed > 0 ? 0 : 1,
             x: x, 
             y: y,
@@ -35,9 +35,21 @@ var $$ = game.projectile = {
             game.theRover.health -= 3;
             $$.fade(projectile);
         }
-        else if(projectile.x < 0 || projectile.x > 24 * 16 || projectile.lifetime < 0 ||
+        else if(projectile.lifetime < 0 ||
            game.level.collisionLeft(projectile) || game.level.collisionRight(projectile)) {
             $$.fade(projectile);
+        }
+
+        if(!projectile.enemy && !projectile.dying) {
+            for(var i = 0; i < game.turrets.length; i++) {
+                if(game.turrets[i].health > 0 &&
+                   Math.abs(projectile.x - game.turrets[i].x) < 16 && 
+                   Math.abs(projectile.y - game.turrets[i].y) < 16) {
+                    game.turrets[i].health -= 10;
+                    $$.fade(projectile);
+                    if(game.turrets[i].health <= 0) game.turretsKilled += 1;
+                }
+            }
         }
     },
 

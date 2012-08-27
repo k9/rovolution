@@ -2,15 +2,19 @@
 
 var $$ = game.level = {
     blockTypes: {
-        blank: 2,
         metal: 1,
-        turret: 3
+        blank: 2,
+        turret: 3,
+        end: 4,
+        start: 5
     },
 
     blockCodes: {
         "r0g0b0": 1,
+        "r255g255b255": 2,
         "r255g0b0": 3,
-        "r255g255b255": 2
+        "r0g0b255": 4,
+        "r0g255b0": 5
     },
 
     create: function(data, columns, rows, callback) {
@@ -20,17 +24,31 @@ var $$ = game.level = {
         }
 
         for(var i = 0; i < columns; i++)
-            level.blocks.push([]);
+            level.blocks.push(new Array(rows));
 
-        for(var i = 0; i < data.length / 4; i++) {
-            var code = "r" + data[i * 4] + "g" + data[i * 4 + 1] + "b" + data[i * 4 + 2];
-            var row = rows - (1 + Math.floor(i / columns));
-            level.blocks[i % columns][row] = game.level.blockCodes[code];
+        var i = 0;
+        for(var y = 0; y < rows; y++) {
+            for(var x = 0; x < columns; x++) {
+                var realY = rows - y;
+                var code = "r" + data[i * 4] + "g" + data[i * 4 + 1] + "b" + data[i * 4 + 2];
+                var blockType = game.level.blockCodes[code];
+
+                if(blockType == game.level.blockTypes.turret) {
+                    blockType = game.level.blockTypes.blank;
+                    game.turrets.push(game.turret.create(x * 16, realY * 16));
+                }
+
+                if(blockType == game.level.blockTypes.start) {
+                    blockType = game.level.blockTypes.blank;
+                    game.theRover.x = game.theRover.startX = x * 16;
+                    game.theRover.y = game.theRover.startY = realY * 16;
+                }
+
+                level.blocks[x][realY] = blockType;
+                game.level.addBlock(level, x, realY, blockType);
+                i++;
+            }
         }
-
-        for(var y = 0; y < rows; y++)
-            for(var x = 0; x < columns; x++)
-                game.level.addBlock(level, x, y, level.blocks[x][y]);
 
         return level;
     },
@@ -84,20 +102,29 @@ var $$ = game.level = {
         return $$.offset(entity).y != 0 && ($$.filled(entity, 0, 1) || ($$.filled(entity, 1, 1) && $$.offset(entity).x > 0));
     },
 
-    touchingLeft: function(entity, x, y) {
+    touchingLeft: function(entity) {
         return $$.offset(entity).x == 0 && ($$.filled(entity, -1, 0) || ($$.filled(entity, -1, 1) && $$.offset(entity).y > 0));
     },
 
-    touchingRight: function(entity, x, y) {
+    touchingRight: function(entity) {
         return $$.offset(entity).x == 0 && ($$.filled(entity, 1, 0) || ($$.filled(entity, 1, 1) && $$.offset(entity).y > 0));
     },
 
-    touchingBottom: function(entity, x, y) {
+    touchingBottom: function(entity) {
         return $$.offset(entity).y == 0 && ($$.filled(entity, 0, -1) || ($$.filled(entity, 1, -1) && $$.offset(entity).x > 0));
     },
 
-    touchingTop: function(entity, x, y) {
+    touchingTop: function(entity) {
         return $$.offset(entity).y == 0 && ($$.filled(entity, 0, 1) || ($$.filled(entity, 1, 1) && $$.offset(entity).x > 0));
+    },
+
+    touchingBlocks: function(entity) {
+        var blocks = [];
+        if($$.touchingLeft(entity)) blocks.push($$.block(entity, -1, 0));
+        if($$.touchingRight(entity)) blocks.push($$.block(entity, 1, 0));
+        if($$.touchingBottom(entity)) blocks.push($$.block(entity, 0, -1));
+        if($$.touchingTop(entity)) blocks.push($$.block(entity, 0, 1));
+        return blocks;
     }
 };
 

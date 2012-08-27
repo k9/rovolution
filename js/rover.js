@@ -10,8 +10,8 @@ var $$ = game.rover = {
     create: function(data, columns, rows, callback) {
         var rover = {
             health: 100,
-            x: 20, 
-            y: 20,
+            x: 200, 
+            y: 200,
             xSpeed: 0,
             ySpeed: 0,
             acceleration: 0.005,
@@ -33,8 +33,8 @@ var $$ = game.rover = {
     },
 
     update: function(rover, elapsed) {
-        rover.xSpeed = absClamp(rover.xSpeed, 0.0001, (rover.xSpeedMax * (game.currentGen.speed + 1) / 6));
         rover.x += rover.xSpeed;
+        rover.xSpeed = absClamp(rover.xSpeed, 0.0001, [0.033, 0.1, 0.15, 0.25][game.currentGen.speed]);
 
         if(game.keysDown.right) rover.cannonRight = true;
         if(game.keysDown.left) rover.cannonRight = false;
@@ -42,8 +42,37 @@ var $$ = game.rover = {
         rover.ySpeed = absClamp(rover.ySpeed, 0.0001, rover.ySpeedMax);
         rover.y += rover.ySpeed;
         
-        if(Math.abs(rover.xSpeed) > Math.abs(rover.ySpeed)) { $$.fixX(rover); $$.fixY(rover); }
-        else { $$.fixY(rover); $$.fixX(rover); }
+        var fixedX = $$.fixX(rover); 
+        var fixedY = $$.fixY(rover);
+        var errorX = Math.abs(rover.x - fixedX);
+        var errorY = Math.abs(rover.y - fixedY);
+
+        if(errorX + errorY > 0) {
+            if(errorX < errorY) {
+                if(fixedX != rover.x) {
+                    rover.x = fixedX;
+                    rover.xSpeed = 0;
+                }
+
+                fixedY = $$.fixY(rover);
+                if(fixedY != rover.y) {
+                    rover.y = fixedY;
+                    rover.ySpeed = 0;
+                }
+            } 
+            else {
+                if(fixedY != rover.y) {
+                    rover.y = fixedY;
+                    rover.ySpeed = 0;
+                }
+
+                fixedX = $$.fixX(rover);
+                if(fixedX != rover.x) {
+                    rover.x = fixedX;
+                    rover.xSpeed = 0;
+                }
+            }
+        }
         
         if(game.keysDown.right && !game.level.touchingRight(rover))
             rover.xSpeed += rover.acceleration;
@@ -53,47 +82,51 @@ var $$ = game.rover = {
             rover.xSpeed *= 0.99;
 
         if(!game.level.touchingBottom(rover))
-            rover.ySpeed -= 0.01;
+            rover.ySpeed -= 0.001;
 
-        if(rover.poised && !game.keysDown.down && game.level.touchingBottom(rover) && !game.level.touchingTop(rover))
-            rover.ySpeed += (rover.jump * (game.currentGen.jump + 1) / 6);
+        if(game.keysDown.up && game.level.touchingBottom(rover) && !game.level.touchingTop(rover))
+            rover.ySpeed += [0.02, 0.033, 0.06, 0.1][game.currentGen.jump];
 
-        rover.poised = game.keysDown.down;
-
-        var cooldownTime = 1.2 / (game.currentGen.blaster + 1);
+        var cooldownTime = 0.05;
+        var lifetime = [0.1, 0.2, 0.5, 1][game.currentGen.blaster]
         if(elapsed - rover.lastFire > cooldownTime  && game.keysDown.space) {
             rover.lastFire = elapsed;
             if(rover.cannonRight)
-                game.newProjectile(rover.x + 8, rover.y + 4, 1.5, false);
+                game.newProjectile(rover.x + 8, rover.y + 4, 0.3, false, lifetime);
             else
-                game.newProjectile(rover.x - 8, rover.y + 4, -1.5, false);
+                game.newProjectile(rover.x - 8, rover.y + 4, -0.3, false, lifetime);
+        }
+
+        var touching = game.level.touchingBlocks(rover);
+        if($.inArray(game.level.blockTypes.end, touching) > -1) {
+            game.loadLevel(game.levelNumber + 1);
+            game.milliseconds = -1;
+        }
+
+        if(rover.health < 0) {
+            game.loadLevel(game.levelNumber);
+            game.milliseconds = -1;   
         }
     },
 
     fixX: function(rover) {
         if(Math.abs(rover.xSpeed) > 0) {
-            if(game.level.collisionLeft(rover) && !game.level.collisionRight(rover)) { 
-                rover.xSpeed = 0; 
-                rover.x = (game.level.tile(rover).x + 1) * 16; 
-            }
-            if(game.level.collisionRight(rover) && !game.level.collisionLeft(rover)) { 
-                rover.xSpeed = 0; 
-                rover.x = game.level.tile(rover).x * 16; 
-            }
+            if(game.level.collisionLeft(rover) && !game.level.collisionRight(rover))
+                return (game.level.tile(rover).x + 1) * 16; 
+            if(game.level.collisionRight(rover) && !game.level.collisionLeft(rover))
+                return game.level.tile(rover).x * 16;
         }
+        return rover.x;
     },
 
     fixY: function(rover) {
         if(Math.abs(rover.ySpeed) > 0) {
-            if(game.level.collisionBottom(rover) && !game.level.collisionTop(rover)) { 
-                rover.ySpeed = 0; 
-                rover.y = (game.level.tile(rover).y + 1) * 16; 
-            }
-            if(game.level.collisionTop(rover) && !game.level.collisionBottom(rover)) { 
-                rover.ySpeed = 0; 
-                rover.y = game.level.tile(rover).y * 16; 
-            }
+            if(game.level.collisionBottom(rover) && !game.level.collisionTop(rover))
+                return (game.level.tile(rover).y + 1) * 16; 
+            if(game.level.collisionTop(rover) && !game.level.collisionBottom(rover))
+                return game.level.tile(rover).y * 16; 
         }
+        return rover.y;
     },
 
     addPart: function(rover, layer, type) {

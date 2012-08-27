@@ -4,7 +4,7 @@ var $$ = game.turret = {
     create: function(x, y) {
         var turret = {
             type: 0,
-            health: 5,
+            health: 100,
             x: x, 
             y: y,
             lastFire: 0
@@ -19,9 +19,9 @@ var $$ = game.turret = {
         if(elapsed - turret.lastFire > 0.1 && Math.abs(turret.y - game.theRover.y) < 8) {
             turret.lastFire = elapsed;
             if(turret.x > game.theRover.x)
-                game.newProjectile(turret.x - 16, turret.y, -1.5, true);
+                game.newProjectile(turret.x - 17, turret.y, -0.1, true, 2);
             else
-                game.newProjectile(turret.x + 16, turret.y, 1.5, true);
+                game.newProjectile(turret.x + 17, turret.y, 0.1, true, 2);
         }
     },
 
@@ -47,7 +47,7 @@ var $$ = game.turret = {
                 turrets[i].type, 
                 turrets[i].x, 
                 turrets[i].y,
-                turrets[i].health / turrets[i].startHealth);
+                turrets[i].health > 0 ? 1 : 0);
 
         var mesh = new GL.Mesh({ coords: true });
         mesh.vertices = meshData.vertices;

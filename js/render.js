@@ -57,17 +57,18 @@ var projectileShader = new GL.Shader('\
     }\
 ');
 
+gl.clearColor(0,0,0,0);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+game.render = {};
 
-gl.ondraw = function() {
-    gl.clearColor(0,0,0,0);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+game.render.draw = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.loadIdentity();
-    gl.ortho(0, 24, 0, 18, 0, 100); 
+    gl.ortho(-12, 12, -9, 9, 0, 100); 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.translate(0, 0, -5);
+    gl.translate(-game.theRover.x / 16, -game.theRover.y / 16, -5);
 
     blockTiles.bind(0);
     tileShader.uniforms({ 
@@ -78,15 +79,15 @@ gl.ondraw = function() {
     }).draw(game.levelMesh);
 
     var wheelOffset = 0;
-    if(game.theRover.xSpeed > 0.1) wheelOffset = 1;
-    if(game.theRover.xSpeed < -0.1) wheelOffset = 2;
+    if(game.theRover.xSpeed > 0.05) wheelOffset = 1;
+    if(game.theRover.xSpeed < -0.05) wheelOffset = 2;
 
     var chassisOffset = 0;
-    if(game.keysDown.down) chassisOffset = 1;
+    if(game.level.touchingBottom(game.theRover)) chassisOffset = 1;
 
     var cannonOffset = 0;
     if(!game.theRover.cannonRight) cannonOffset = 1;
-    if(game.keysDown.space && Math.random() > 0.75) cannonOffset = 2;
+    if(game.keysDown.space) cannonOffset = 2;
 
     game.rover.offsetTypes(game.theRover, [cannonOffset, chassisOffset, wheelOffset]);
     game.theRoverMesh = game.rover.makeMesh(game.theRover);
@@ -115,3 +116,5 @@ gl.ondraw = function() {
         }).draw(game.turretMesh);
     }
 };
+
+gl.animate();
